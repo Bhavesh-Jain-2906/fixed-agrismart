@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Smart Crop Recommendations</title>
+  <link rel="stylesheet" href="style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;800&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+</head>
+<body>
+  
+  <video id="bg-video" autoplay loop muted playsinline class="bg-video">
+    <source src="crop.mp4" type="video/mp4">
+  </video>
+  <img id="bg-image" class="bg-image hidden" alt="City Background">
+  <div class="bg-overlay"></div>
+  
+  <!-- AUTH SECTION -->
+  <div id="auth-section" class="auth-wrapper">
+    <div class="auth-card glass-panel">
+      <h2 id="auth-title">Welcome to AgriSmart</h2>
+      <div class="auth-form" id="login-form">
+        <input type="text" id="login-user" placeholder="Username" />
+        <input type="password" id="login-pass" placeholder="Password" />
+        <button id="login-btn" class="city-search-btn" style="width:100%; margin-top:10px;">Login</button>
+        <p class="auth-switch">Don't have an account? <span id="go-to-register">Register here</span></p>
+      </div>
+      <div class="auth-form hidden" id="register-form">
+        <input type="text" id="reg-user" placeholder="Choose a Username" />
+        <input type="password" id="reg-pass" placeholder="Choose a Password" />
+        <button id="reg-btn" class="city-search-btn" style="width:100%; margin-top:10px;">Register</button>
+        <p class="auth-switch">Already have an account? <span id="go-to-login">Login here</span></p>
+      </div>
+      <p id="auth-error" class="auth-error hidden"></p>
+    </div>
+  </div>
+
+  <nav class="navbar hidden" id="main-nav">
+    <div class="nav-brand">AgriSmart</div>
+    <div class="nav-links">
+      <button class="nav-btn active" data-target="home-section" data-bg="crop.mp4">Home</button>
+      <button class="nav-btn" data-target="map-section" data-bg="crop.mp4">Map Explorer</button>
+      <button class="nav-btn" data-target="weather-section" data-bg="weather.mp4">Live Weather</button>
+      <button id="nav-admin-btn" class="nav-btn hidden" data-target="admin-section" data-bg="crop.mp4">Admin</button>
+      <button id="logout-btn" class="nav-btn" style="color:#ef4444;">Logout</button>
+    </div>
+  </nav>
+
+  <div class="container hidden" id="main-container">
+    
+    <!-- HOME SECTION -->
+    <div id="home-section" class="page-section">
+      <div class="header-small">
+        <h1>Smart Crop Recommendations</h1>
+      </div>
+
+      <div class="home-grid">
+        <div class="home-left">
+          <div class="location-card glass-panel">
+            <h2>Your Location</h2>
+            <div id="location-loading" class="loading-indicator">Requesting exact location access...</div>
+            <div id="location-display" class="hidden">
+              <span class="icon">📍</span>
+              <span id="state-name">State Name</span>
+            </div>
+          </div>
+
+          <div id="crop-selection" class="selection-card glass-panel hidden">
+            <h2>Select a Crop</h2>
+            <div class="custom-select-wrapper">
+              <select id="crop-dropdown">
+                <option value="" disabled selected>Choose a crop...</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div class="home-right">
+          <div id="crop-details" class="details-card glass-panel hidden">
+            <div class="details-header">
+              <h2 id="detail-name">Crop Name</h2>
+              <span id="detail-quality" class="badge">Quality</span>
+            </div>
+            
+            <div class="details-grid">
+              <div class="detail-item">
+                <span class="detail-label">Ideal Weather</span>
+                <span id="detail-weather" class="detail-value">...</span>
+              </div>
+              <div class="detail-item">
+                <span class="detail-label">Water Required</span>
+                <span id="detail-water" class="detail-value">...</span>
+              </div>
+              <div class="detail-item">
+                <span class="detail-label">Soil Density</span>
+                <span id="detail-density" class="detail-value">...</span>
+              </div>
+              <div class="detail-item">
+                <span class="detail-label">Soil Type</span>
+                <span id="detail-soil" class="detail-value">...</span>
+              </div>
+            </div>
+            
+            <div>
+              <span class="detail-label">Also Produced In:</span>
+              <div id="detail-states" class="states-list">
+                <!-- State badges go here -->
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MAP EXPLORER SECTION -->
+    <div id="map-section" class="page-section hidden">
+      <div class="header-small">
+        <h1>Map Explorer</h1>
+      </div>
+
+      <div class="map-grid">
+        <div class="map-container glass-panel">
+          <div id="india-map" style="height: 100%; width: 100%; border-radius: 8px; z-index: 1;"></div>
+        </div>
+
+        <div class="map-right-column">
+          <div id="map-crop-results" class="glass-panel hidden" style="margin-bottom: 1rem;">
+            <h2 id="map-state-title">Crops in Selected State</h2>
+            <div id="map-crop-list" class="map-crop-grid">
+              <!-- Crop cards will be dynamically added here -->
+            </div>
+          </div>
+
+          <div id="ai-farmer-chat" class="glass-panel chat-container">
+            <div class="chat-header">
+              <h2><span class="icon">🌾</span> AI Expert Farmer</h2>
+              <p class="chat-sub">Ask me anything about agriculture</p>
+            </div>
+            <div class="chat-messages" id="chat-messages">
+              <div class="chat-bubble bot-bubble">Hello! I'm your AI Farmer. How can I assist you today?</div>
+            </div>
+            <div class="chat-input-area">
+              <input type="text" id="chat-input" placeholder="Ask a farming question..." />
+              <button id="chat-send-btn">Send</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- LIVE WEATHER SECTION -->
+    <div id="weather-section" class="page-section hidden weather-section">
+      <div class="header-small">
+        <h1>Live Weather Dashboard</h1>
+      </div>
+
+      <div class="weather-search-container glass-panel">
+        <input type="text" id="city-search" class="city-search-input" placeholder="Search for a city...">
+        <button id="city-search-btn" class="city-search-btn">Search</button>
+      </div>
+
+      <div id="weather-loading" class="glass-panel loading-indicator">
+        Fetching live weather data...
+      </div>
+
+      <div id="weather-dashboard" class="weather-dashboard glass-panel hidden">
+        <div class="weather-main">
+          <div class="weather-loc">
+            <span class="icon">📍</span> <span id="w-location">City, State</span>
+          </div>
+          <div class="weather-temp-row">
+            <img id="w-icon" src="" alt="Weather Icon" class="weather-icon" />
+            <div class="weather-temp"><span id="w-temp">--</span>°C</div>
+          </div>
+          <div id="w-condition" class="weather-condition">Condition</div>
+        </div>
+
+        <div class="weather-stats-grid">
+          <div class="w-stat-card">
+            <span class="w-stat-label">Humidity</span>
+            <span id="w-humidity" class="w-stat-val">--%</span>
+          </div>
+          <div class="w-stat-card">
+            <span class="w-stat-label">Wind</span>
+            <span id="w-wind" class="w-stat-val">-- km/h</span>
+          </div>
+          <div class="w-stat-card">
+            <span class="w-stat-label">Feels Like</span>
+            <span id="w-feels" class="w-stat-val">--°C</span>
+          </div>
+          <div class="w-stat-card">
+            <span class="w-stat-label">Precipitation</span>
+            <span id="w-precip" class="w-stat-val">-- mm</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ADMIN SECTION -->
+    <div id="admin-section" class="page-section hidden">
+      <div class="header-small">
+        <h1>Admin Dashboard</h1>
+      </div>
+      
+      <div class="admin-tabs">
+        <button class="admin-tab active" data-target="admin-crops">Manage Crops</button>
+        <button class="admin-tab" data-target="admin-users">Manage Users</button>
+      </div>
+
+      <div id="admin-crops" class="admin-panel glass-panel">
+        <h2>Add New Crop</h2>
+        <div class="add-crop-form">
+          <input type="text" id="ac-name" placeholder="Crop Name" />
+          <input type="text" id="ac-quality" placeholder="Quality (e.g. High)" />
+          <input type="text" id="ac-weather" placeholder="Ideal Weather" />
+          <input type="text" id="ac-states" placeholder="States (comma separated)" />
+          <input type="text" id="ac-water" placeholder="Water Required" />
+          <input type="text" id="ac-density" placeholder="Soil Density" />
+          <input type="text" id="ac-soil" placeholder="Soil Type" />
+          <button id="ac-submit-btn" class="city-search-btn">Add Crop</button>
+        </div>
+        <h2 style="margin-top:2rem;">All Crops</h2>
+        <div class="table-container">
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th>ID</th><th>Name</th><th>States</th><th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="admin-crops-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div id="admin-users" class="admin-panel glass-panel hidden">
+        <h2>Manage Users</h2>
+        <div class="table-container">
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th>ID</th><th>Username</th><th>Role</th><th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="admin-users-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>
