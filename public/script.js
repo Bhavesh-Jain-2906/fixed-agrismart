@@ -200,7 +200,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   // Fetch crops
   async function fetchCropsByState(state, isHome = false) {
     try {
-      const response = await fetch(`http://localhost:5000/api/crops/state/${encodeURIComponent(state)}`);
+      const response = await fetch(`/api/crops/state/${encodeURIComponent(state)}`);
       if (!response.ok) throw new Error('Failed to fetch crops');
       
       const crops = await response.json();
@@ -359,7 +359,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   // --- LIVE WEATHER LOGIC ---
   async function fetchWeatherData(lat, lng) {
     try {
-      const response = await fetch(`http://api.weatherapi.com/v1/current.json?key=${weatherApiKey}&q=${lat},${lng}`);
+      const response = await fetch(`https://api.weatherapi.com/v1/current.json?key=${weatherApiKey}&q=${lat},${lng}`);
       if (!response.ok) throw new Error("Weather API failed");
       
       const data = await response.json();
@@ -396,7 +396,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     try {
       // Fetch Weather
-      const response = await fetch(`http://api.weatherapi.com/v1/current.json?key=${weatherApiKey}&q=${encodeURIComponent(city)}`);
+      const response = await fetch(`https://api.weatherapi.com/v1/current.json?key=${weatherApiKey}&q=${encodeURIComponent(city)}`);
       if (!response.ok) throw new Error("Weather API failed");
       const data = await response.json();
       
