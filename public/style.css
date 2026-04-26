@@ -769,3 +769,43 @@ select option { background: var(--bg-dark); }
   outline: none;
   margin-right: 0.5rem;
 }
+
+/* Modals & Notifications */
+.admin-notification {
+  padding: 1rem;
+  margin-bottom: 1rem;
+  border-radius: 8px;
+  text-align: center;
+  font-weight: 500;
+  transition: opacity 0.3s ease;
+}
+
+.admin-notification.success {
+  background: rgba(16, 185, 129, 0.2);
+  color: #10B981;
+  border: 1px solid rgba(16, 185, 129, 0.4);
+}
+
+.admin-notification.error {
+  background: rgba(239, 68, 68, 0.2);
+  color: #ef4444;
+  border: 1px solid rgba(239, 68, 68, 0.4);
+}
+
+.modal {
+  position: absolute;
+  top: 0; left: 0;
+  width: 100vw; height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+  background: rgba(15, 23, 42, 0.8);
+}
+
+.modal-content {
+  width: 100%;
+  max-width: 400px;
+  display: flex;
+  flex-direction: column;
+}

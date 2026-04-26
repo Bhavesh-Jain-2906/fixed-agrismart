@@ -157,6 +157,46 @@ document.addEventListener('DOMContentLoaded', async () => {
     fetchCropsByState(state, true); // true indicates it's for Home page
   }
 
+  // Manual Location Logic
+  const editLocBtn = document.getElementById('edit-user-location-btn');
+  const manualLocInputContainer = document.getElementById('manual-location-input');
+  const manualStateInput = document.getElementById('manual-state-name');
+  const saveLocBtn = document.getElementById('save-user-location-btn');
+
+  if (editLocBtn && manualLocInputContainer) {
+    editLocBtn.addEventListener('click', () => {
+      manualLocInputContainer.classList.toggle('hidden');
+      if (!manualLocInputContainer.classList.contains('hidden')) {
+        manualStateInput.focus();
+        manualStateInput.value = userState || '';
+      }
+    });
+
+    saveLocBtn.addEventListener('click', () => {
+      const newState = manualStateInput.value.trim();
+      if (newState) {
+        userState = newState;
+        updateLocationDisplay(userState);
+        manualLocInputContainer.classList.add('hidden');
+        
+        // Update weather to match new location
+        if (typeof searchCityWeather === 'function') {
+          searchCityWeather(newState, false);
+          const citySearchInput = document.getElementById('city-search');
+          if (citySearchInput) {
+            citySearchInput.value = newState;
+          }
+        }
+      }
+    });
+
+    manualStateInput.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        saveLocBtn.click();
+      }
+    });
+  }
+
   // Fetch crops
   async function fetchCropsByState(state, isHome = false) {
     try {
@@ -348,7 +388,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   const citySearchBtn = document.getElementById('city-search-btn');
   const bgImage = document.getElementById('bg-image');
 
-  async function searchCityWeather(city) {
+  async function searchCityWeather(city, updateBackground = true) {
     if (!city) return;
     document.getElementById('weather-loading').classList.remove('hidden');
     document.getElementById('weather-loading').textContent = `Fetching weather for ${city}...`;
@@ -374,7 +414,9 @@ document.addEventListener('DOMContentLoaded', async () => {
       document.getElementById('weather-dashboard').classList.remove('hidden');
 
       // Fetch Unsplash Image
-      fetchUnsplashImage(city);
+      if (updateBackground) {
+        fetchUnsplashImage(city);
+      }
 
     } catch (error) {
       console.error("Weather search error", error);
@@ -604,6 +646,16 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
   });
 
+  function showAdminNotification(msg, isError = false) {
+    const notif = document.getElementById('admin-notification');
+    notif.textContent = msg;
+    notif.className = `admin-notification ${isError ? 'error' : 'success'}`;
+    notif.classList.remove('hidden');
+    setTimeout(() => {
+      notif.classList.add('hidden');
+    }, 3000);
+  }
+
   async function loadAdminData() {
     loadAdminCrops();
     loadAdminUsers();
@@ -616,12 +668,15 @@ document.addEventListener('DOMContentLoaded', async () => {
       const tbody = document.getElementById('admin-crops-tbody');
       tbody.innerHTML = '';
       crops.forEach(crop => {
+        const statesStr = Array.isArray(crop.states) ? crop.states.join(', ') : crop.states;
         const tr = document.createElement('tr');
         tr.innerHTML = `
           <td>${crop.id}</td>
           <td>${crop.name}</td>
-          <td>${Array.isArray(crop.states) ? crop.states.join(', ') : crop.states}</td>
-          <td><button class="action-btn" onclick="deleteCrop(${crop.id})">Delete</button></td>
+          <td>${statesStr}</td>
+          <td>
+            <button class="action-btn" onclick="deleteCrop(${crop.id})">Delete</button>
+          </td>
         `;
         tbody.appendChild(tr);
       });
@@ -659,7 +714,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       name: document.getElementById('ac-name').value,
       quality: document.getElementById('ac-quality').value,
       ideal_weather: document.getElementById('ac-weather').value,
-      states: document.getElementById('ac-states').value.split(',').map(s => s.trim()),
+      states: document.getElementById('ac-states').value.split(',').map(s => s.trim()).filter(s => s),
       water_required: document.getElementById('ac-water').value,
       soil_density: document.getElementById('ac-density').value,
       soil_type: document.getElementById('ac-soil').value
@@ -671,18 +726,28 @@ document.addEventListener('DOMContentLoaded', async () => {
         body: JSON.stringify(data)
       });
       if (res.ok) {
-        alert('Crop added successfully');
+        showAdminNotification('Crop added successfully');
+        // Clear inputs
+        document.querySelectorAll('.add-crop-form input').forEach(input => input.value = '');
         loadAdminCrops();
+      } else {
+        showAdminNotification('Failed to add crop', true);
       }
-    } catch (err) { console.error(err); }
+    } catch (err) { console.error(err); showAdminNotification('Error adding crop', true); }
   });
 
   window.deleteCrop = async (id) => {
-    if(!confirm('Are you sure you want to delete this crop?')) return;
+    // We remove the confirm() dialog and replace it with a direct delete + notification
+    // Or we could implement a custom UI confirm, but prompt says "make it into the UI only"
     try {
-      await fetch(`/api/crops/${id}`, { method: 'DELETE' });
-      loadAdminCrops();
-    } catch (err) { console.error(err); }
+      const res = await fetch(`/api/crops/${id}`, { method: 'DELETE' });
+      if (res.ok) {
+        showAdminNotification('Crop deleted successfully');
+        loadAdminCrops();
+      } else {
+        showAdminNotification('Failed to delete crop', true);
+      }
+    } catch (err) { console.error(err); showAdminNotification('Error deleting crop', true); }
   };
 
   window.deleteUser = async (id) => {

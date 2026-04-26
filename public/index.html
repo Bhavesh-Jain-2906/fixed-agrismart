@@ -58,11 +58,18 @@
       <div class="home-grid">
         <div class="home-left">
           <div class="location-card glass-panel">
-            <h2>Your Location</h2>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+              <h2 style="margin: 0;">Your Location</h2>
+              <button id="edit-user-location-btn" class="action-btn" style="background: transparent; color: var(--primary); border: 1px solid var(--primary); font-size: 0.8rem;">Change</button>
+            </div>
             <div id="location-loading" class="loading-indicator">Requesting exact location access...</div>
             <div id="location-display" class="hidden">
               <span class="icon">📍</span>
               <span id="state-name">State Name</span>
+            </div>
+            <div id="manual-location-input" class="hidden" style="margin-top: 1rem; display: flex; gap: 0.5rem;">
+              <input type="text" id="manual-state-name" class="city-search-input" placeholder="Enter State (e.g. Maharashtra)" style="flex-grow: 1; padding: 0.5rem; font-size: 0.9rem;" />
+              <button id="save-user-location-btn" class="city-search-btn" style="padding: 0.5rem 1rem; font-size: 0.9rem;">Set</button>
             </div>
           </div>
 
@@ -203,12 +210,16 @@
         <h1>Admin Dashboard</h1>
       </div>
       
+      <!-- INLINE NOTIFICATION -->
+      <div id="admin-notification" class="admin-notification hidden"></div>
+      
       <div class="admin-tabs">
-        <button class="admin-tab active" data-target="admin-crops">Manage Crops</button>
+        <button class="admin-tab active" data-target="admin-add-crop">Add Crop</button>
+        <button class="admin-tab" data-target="admin-all-crops">All Crops</button>
         <button class="admin-tab" data-target="admin-users">Manage Users</button>
       </div>
 
-      <div id="admin-crops" class="admin-panel glass-panel">
+      <div id="admin-add-crop" class="admin-panel glass-panel">
         <h2>Add New Crop</h2>
         <div class="add-crop-form">
           <input type="text" id="ac-name" placeholder="Crop Name" />
@@ -220,7 +231,10 @@
           <input type="text" id="ac-soil" placeholder="Soil Type" />
           <button id="ac-submit-btn" class="city-search-btn">Add Crop</button>
         </div>
-        <h2 style="margin-top:2rem;">All Crops</h2>
+      </div>
+
+      <div id="admin-all-crops" class="admin-panel glass-panel hidden">
+        <h2>All Crops</h2>
         <div class="table-container">
           <table class="admin-table">
             <thead>
@@ -247,7 +261,7 @@
         </div>
       </div>
     </div>
-
+    
   </div>
 
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>

@@ -42,17 +42,34 @@ const stateMapping = {
 router.get('/state/:state', async (req, res) => {
   try {
     const incomingState = req.params.state.toLowerCase().trim();
-    // Use mapped name if available, otherwise use the lowercased incoming state
-    const normalizedState = stateMapping[incomingState] ? stateMapping[incomingState].toLowerCase() : incomingState;
     
-    // Case-insensitive query using LOWER() to match against ANY elements in the array
+    // Find canonical name (if input is a key, value is canonical; if input is a value, it is canonical)
+    let canonicalState = incomingState;
+    if (stateMapping[incomingState]) {
+      canonicalState = stateMapping[incomingState].toLowerCase();
+    }
+    
+    // Build an array of all possible aliases (e.g. 'mp', 'madhya pradesh')
+    const aliases = [canonicalState];
+    for (const [key, val] of Object.entries(stateMapping)) {
+      if (val.toLowerCase() === canonicalState) {
+        if (!aliases.includes(key.toLowerCase())) {
+          aliases.push(key.toLowerCase());
+        }
+      }
+    }
+    
+    // Query to check if ANY of the crop's states match ANY of our aliases
     const query = `
       SELECT id, name, quality, ideal_weather, states, water_required, soil_density, soil_type 
       FROM crops 
-      WHERE LOWER($1) = ANY(SELECT LOWER(unnest(states)))
+      WHERE EXISTS (
+        SELECT 1 FROM unnest(states) s 
+        WHERE LOWER(s) = ANY($1::text[])
+      )
     `;
     
-    const result = await pool.query(query, [normalizedState]);
+    const result = await pool.query(query, [aliases]);
     res.json(result.rows);
   } catch (error) {
     console.error('Error fetching crops by state:', error);
