@@ -1,19 +1,36 @@
 const { Pool } = require('pg');
 
-const pool = new Pool({
-  host: 'localhost',
-  port: 5432,
-  database: 'cropdb',
-  user: 'postgres',
-  password: 'Johan@2906'
-});
+const isProduction = process.env.DATABASE_URL;
 
+const pool = new Pool(
+  isProduction
+    ? {
+        connectionString: process.env.DATABASE_URL,
+        ssl: {
+          rejectUnauthorized: false
+        }
+      }
+    : {
+        host: 'localhost',
+        port: 5432,
+        database: 'cropdb',
+        user: 'postgres',
+        password: 'Johan@2906'
+      }
+);
+
+// Test connection
 pool.connect((err, client, release) => {
   if (err) {
-    return console.error('Error acquiring client', err.stack);
+    console.error('DB connection error ❌', err.stack);
+  } else {
+    console.log(
+      isProduction
+        ? 'Connected to Supabase DB ✅'
+        : 'Connected to Local PostgreSQL ✅'
+    );
+    release();
   }
-  console.log('Connected to PostgreSQL database (cropdb)');
-  release();
 });
 
 module.exports = pool;
