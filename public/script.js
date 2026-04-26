@@ -3,7 +3,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   let weatherApiKey = '';
   let opencageApiKey = '';
   let unsplashApiKey = '';
-  
+
   try {
     const configResponse = await fetch('/api/config');
     const config = await configResponse.json();
@@ -14,12 +14,12 @@ document.addEventListener('DOMContentLoaded', async () => {
   } catch (err) {
     console.error('Failed to load config', err);
   }
-  
+
   // Navigation elements
   const navBtns = document.querySelectorAll('.nav-btn');
   const pageSections = document.querySelectorAll('.page-section');
   const bgVideo = document.getElementById('bg-video');
-  
+
   // Home elements
   const locationLoading = document.getElementById('location-loading');
   const locationDisplay = document.getElementById('location-display');
@@ -27,7 +27,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   const cropSelection = document.getElementById('crop-selection');
   const cropDropdown = document.getElementById('crop-dropdown');
   const cropDetails = document.getElementById('crop-details');
-  
+
   let cropsData = [];
   let userCoords = { lat: 20.5937, lng: 78.9629 }; // Default India center
   let userState = null;
@@ -40,12 +40,12 @@ document.addEventListener('DOMContentLoaded', async () => {
       // Remove active from all
       navBtns.forEach(b => b.classList.remove('active'));
       pageSections.forEach(s => s.classList.add('hidden'));
-      
+
       // Add active to clicked
       btn.classList.add('active');
       const targetId = btn.getAttribute('data-target');
       const bgSrc = btn.getAttribute('data-bg');
-      
+
       // Update background video
       const bgImg = document.getElementById('bg-image');
       if (bgImg) bgImg.classList.add('hidden'); // Hide image on tab switch
@@ -84,22 +84,22 @@ document.addEventListener('DOMContentLoaded', async () => {
   // Step 1: Auto-detect location
   async function detectLocation() {
     locationLoading.textContent = 'Requesting exact location access...';
-    
+
     if ("geolocation" in navigator) {
       navigator.geolocation.getCurrentPosition(
         async (position) => {
           userCoords.lat = position.coords.latitude;
           userCoords.lng = position.coords.longitude;
           fetchWeatherData(userCoords.lat, userCoords.lng); // Fetch weather data with coords
-          
+
           try {
             locationLoading.textContent = 'Reverse geocoding...';
             const geocodeUrl = `https://api.opencagedata.com/geocode/v1/json?q=${userCoords.lat}+${userCoords.lng}&key=${opencageApiKey}`;
             const response = await fetch(geocodeUrl);
             if (!response.ok) throw new Error('Geocoding failed');
-            
+
             const data = await response.json();
-            
+
             if (data.results && data.results.length > 0) {
               const components = data.results[0].components;
               userState = components.state;
@@ -130,17 +130,17 @@ document.addEventListener('DOMContentLoaded', async () => {
     try {
       const response = await fetch(`https://ipinfo.io/json?token=${ipinfoToken}`);
       if (!response.ok) throw new Error('Failed to fetch location data');
-      
+
       const data = await response.json();
-      userState = data.region; 
-      
+      userState = data.region;
+
       // Attempt to get coords from ipinfo for weather
       if (data.loc) {
         const [lat, lng] = data.loc.split(',');
         userCoords = { lat: parseFloat(lat), lng: parseFloat(lng) };
         fetchWeatherData(userCoords.lat, userCoords.lng);
       }
-      
+
       updateLocationDisplay(userState);
     } catch (error) {
       console.error('Error detecting location:', error);
@@ -178,7 +178,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         userState = newState;
         updateLocationDisplay(userState);
         manualLocInputContainer.classList.add('hidden');
-        
+
         // Update weather to match new location
         if (typeof searchCityWeather === 'function') {
           searchCityWeather(newState, false);
@@ -202,9 +202,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     try {
       const response = await fetch(`/api/crops/state/${encodeURIComponent(state)}`);
       if (!response.ok) throw new Error('Failed to fetch crops');
-      
+
       const crops = await response.json();
-      
+
       if (isHome) {
         cropsData = crops;
         cropDropdown.innerHTML = '<option value="" disabled selected>Choose a crop...</option>';
@@ -227,7 +227,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         // Map Page Rendering
         renderMapCrops(state, crops);
       }
-      
+
     } catch (error) {
       console.error('Error fetching crops:', error);
     }
@@ -246,10 +246,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.getElementById('detail-water').textContent = crop.water_required || 'N/A';
     document.getElementById('detail-density').textContent = crop.soil_density || 'N/A';
     document.getElementById('detail-soil').textContent = crop.soil_type || 'N/A';
-    
+
     const statesList = document.getElementById('detail-states');
     statesList.innerHTML = '';
-    
+
     if (crop.states && Array.isArray(crop.states)) {
       crop.states.forEach(s => {
         const badge = document.createElement('span');
@@ -259,7 +259,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       });
     }
     cropDetails.classList.remove('hidden');
-    
+
     // Trigger animation
     cropDetails.classList.remove('animate-pop');
     void cropDetails.offsetWidth; // trigger reflow
@@ -294,7 +294,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     try {
       const geoResp = await fetch('https://cdn.jsdelivr.net/gh/geohacker/india/state/india_state.geojson');
       const geoData = await geoResp.json();
-      
+
       L.geoJSON(geoData, {
         style: function (feature) {
           return {
@@ -337,7 +337,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.getElementById('map-state-title').textContent = `Crops in ${state}`;
     const listEl = document.getElementById('map-crop-list');
     listEl.innerHTML = '';
-    
+
     if (crops.length === 0) {
       listEl.innerHTML = '<p>No crops found for this state in the database.</p>';
     } else {
@@ -361,22 +361,22 @@ document.addEventListener('DOMContentLoaded', async () => {
     try {
       const response = await fetch(`https://api.weatherapi.com/v1/current.json?key=${weatherApiKey}&q=${lat},${lng}`);
       if (!response.ok) throw new Error("Weather API failed");
-      
+
       const data = await response.json();
-      
+
       document.getElementById('w-location').textContent = `${data.location.name}, ${data.location.region}`;
       document.getElementById('w-icon').src = `https:${data.current.condition.icon}`;
       document.getElementById('w-temp').textContent = data.current.temp_c;
       document.getElementById('w-condition').textContent = data.current.condition.text;
-      
+
       document.getElementById('w-humidity').textContent = `${data.current.humidity}%`;
       document.getElementById('w-wind').textContent = `${data.current.wind_kph} km/h`;
       document.getElementById('w-feels').textContent = `${data.current.feelslike_c}°C`;
       document.getElementById('w-precip').textContent = `${data.current.precip_mm} mm`;
-      
+
       document.getElementById('weather-loading').classList.add('hidden');
       document.getElementById('weather-dashboard').classList.remove('hidden');
-      
+
     } catch (error) {
       console.error("Weather fetch error", error);
       document.getElementById('weather-loading').textContent = "Failed to load weather data.";
@@ -399,17 +399,17 @@ document.addEventListener('DOMContentLoaded', async () => {
       const response = await fetch(`https://api.weatherapi.com/v1/current.json?key=${weatherApiKey}&q=${encodeURIComponent(city)}`);
       if (!response.ok) throw new Error("Weather API failed");
       const data = await response.json();
-      
+
       document.getElementById('w-location').textContent = `${data.location.name}, ${data.location.region}`;
       document.getElementById('w-icon').src = `https:${data.current.condition.icon}`;
       document.getElementById('w-temp').textContent = data.current.temp_c;
       document.getElementById('w-condition').textContent = data.current.condition.text;
-      
+
       document.getElementById('w-humidity').textContent = `${data.current.humidity}%`;
       document.getElementById('w-wind').textContent = `${data.current.wind_kph} km/h`;
       document.getElementById('w-feels').textContent = `${data.current.feelslike_c}°C`;
       document.getElementById('w-precip').textContent = `${data.current.precip_mm} mm`;
-      
+
       document.getElementById('weather-loading').classList.add('hidden');
       document.getElementById('weather-dashboard').classList.remove('hidden');
 
@@ -449,7 +449,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   function fallbackToVideo() {
     bgImage.classList.add('hidden');
     bgVideo.style.opacity = '1';
-    
+
     const sourceEl = bgVideo.querySelector('source');
     if (sourceEl && !sourceEl.getAttribute('src').includes('weather.mp4')) {
       sourceEl.setAttribute('src', 'weather.mp4');
@@ -494,13 +494,13 @@ document.addEventListener('DOMContentLoaded', async () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ messages: chatHistory })
       });
-      
+
       if (!response.ok) throw new Error('Network response was not ok');
       const data = await response.json();
-      
+
       const botReply = data.choices[0].message.content;
       chatHistory.push({ role: 'assistant', content: botReply });
-      
+
       typingIndicator.textContent = botReply;
       typingIndicator.classList.remove('typing');
     } catch (error) {
@@ -534,11 +534,11 @@ document.addEventListener('DOMContentLoaded', async () => {
   const authSection = document.getElementById('auth-section');
   const mainNav = document.getElementById('main-nav');
   const mainContainer = document.getElementById('main-container');
-  
+
   const loginForm = document.getElementById('login-form');
   const registerForm = document.getElementById('register-form');
   const authError = document.getElementById('auth-error');
-  
+
   const navAdminBtn = document.getElementById('nav-admin-btn');
   const logoutBtn = document.getElementById('logout-btn');
 
@@ -568,7 +568,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         body: JSON.stringify({ username: user, password: pass })
       });
       if (!res.ok) throw new Error('Invalid credentials');
-      
+
       currentUser = await res.json();
       completeLogin();
     } catch (err) {
@@ -591,7 +591,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         const errorData = await res.json();
         throw new Error(errorData.error || 'Registration failed');
       }
-      
+
       currentUser = await res.json();
       completeLogin();
     } catch (err) {
@@ -608,16 +608,16 @@ document.addEventListener('DOMContentLoaded', async () => {
     authSection.classList.add('hidden');
     mainNav.classList.remove('hidden');
     mainContainer.classList.remove('hidden');
-    
+
     if (currentUser.role === 'admin') {
       navAdminBtn.classList.remove('hidden');
       loadAdminData();
-      
+
       navBtns.forEach(b => b.classList.remove('active'));
       navAdminBtn.classList.add('active');
       pageSections.forEach(s => s.classList.add('hidden'));
       document.getElementById('admin-section').classList.remove('hidden');
-      
+
       // We don't necessarily call detectLocation() for admin immediately,
       // but they can navigate to Map Explorer if they want.
       detectLocation();
@@ -696,7 +696,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             <option value="user" ${u.role === 'user' ? 'selected' : ''}>User</option>
             <option value="admin" ${u.role === 'admin' ? 'selected' : ''}>Admin</option>
           </select>`;
-          
+
         const tr = document.createElement('tr');
         tr.innerHTML = `
           <td>${u.id}</td>
@@ -751,7 +751,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   };
 
   window.deleteUser = async (id) => {
-    if(!confirm('Are you sure you want to delete this user?')) return;
+    if (!confirm('Are you sure you want to delete this user?')) return;
     try {
       await fetch(`/api/users/${id}`, { method: 'DELETE' });
       loadAdminUsers();
